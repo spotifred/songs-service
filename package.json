@@ -4,6 +4,7 @@
   "description": "Spotifred services unite!",
   "main": "client/index.js",
   "scripts": {
+    "start": "node server/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -14,7 +15,23 @@
     "spotifred"
   ],
   "author": "spotifred-team",
-  "license": "ISC",
+  "license": "MIT",
+  "dependencies": {
+    "Faker": "^0.7.2",
+    "chai": "^4.1.2",
+    "concat-files": "^0.1.1",
+    "csv-writer": "0.0.3",
+    "fs": "0.0.1-security",
+    "koa": "^2.4.1",
+    "koa-body": "^2.5.0",
+    "koa-morgan": "^1.0.1",
+    "koa-response-time": "^2.0.0",
+    "koa-router": "^7.4.0",
+    "mocha": "^5.0.0",
+    "newrelic": "^2.7.0",
+    "path": "^0.12.7",
+    "pg": "^7.4.1"
+  },
   "bugs": {
     "url": "https://github.com/spotifred/spotifred/issues"
   },
