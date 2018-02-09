@@ -9,7 +9,7 @@ const db = require('../database/index.js');
 
 const app = new Koa();
 const router = new Router();
-const PORT = 3000; // could do productionPort || 3000 as needed
+const PORT = process.env.PORT; // could do productionPort || 3000 as needed
 
 // for immediate relief
 // TODO: refactor to cb for speed
@@ -61,4 +61,6 @@ app
   // .use(logger('combined'))
   .use(router.allowedMethods());
 
-app.listen(PORT, () => console.log(`Now listening on port ${PORT}`));
+if (!module.parent) {
+  app.listen(PORT, () => console.log(`Now listening on port ${PORT}`));
+}
