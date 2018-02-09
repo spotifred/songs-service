@@ -1,3 +1,4 @@
+require('dotenv').config();
 require('newrelic');
 const Koa = require('koa');
 const Router = require('koa-router');
@@ -57,7 +58,7 @@ app
   .use(responseTime())
   .use(Parser())
   .use(router.routes())
-  .use(logger('combined'))
+  // .use(logger('combined'))
   .use(router.allowedMethods());
 
 app.listen(PORT, () => console.log(`Now listening on port ${PORT}`));

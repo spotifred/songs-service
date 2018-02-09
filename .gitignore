@@ -53,3 +53,6 @@ config.json
 
 # amazon credentials
 capstone.pem
+
+# env
+.env
