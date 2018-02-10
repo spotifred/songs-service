@@ -46,7 +46,8 @@ router.post('/songs/addSong', async (ctx, next) => {
 
 router.post('/songs/removeSong/:songID', async (ctx, next) => {
   try {
-    ctx.response.body = await db.removeSong(ctx.params.songID);
+    let removal = await db.removeSong(ctx.params.songID);
+    ctx.response.body = 'Deleted';
     await next();
   } catch (err) {
     console.error(err);

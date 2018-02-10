@@ -5,15 +5,13 @@
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/spotifred/spotifred.git"
   },
-  "keywords": [
-    "spotifred"
-  ],
+  "keywords": ["spotifred"],
   "author": "spotifred-team",
   "license": "MIT",
   "dependencies": {

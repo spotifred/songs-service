@@ -1,3 +1,5 @@
+require('dotenv').config();
+require('newrelic');
 const { Client } = require('pg');
 const path = require('path');
 const fs = require('fs');
