@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('newrelic');
 const { expect } = require('chai');
 const { Client } = require('pg');
 const db = require('../database/index.js');
