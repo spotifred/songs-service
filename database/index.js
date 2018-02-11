@@ -1,10 +1,11 @@
+require('dotenv').config();
+require('newrelic');
 const { Client } = require('pg');
 const path = require('path');
 const fs = require('fs');
 
 const client = new Client({
-  connectionString:
-    process.env.DATABASE_URL || 'psql://home:@localhost/capstone',
+  connectionString: process.env.DATABASE_URL,
 });
 
 client
@@ -62,7 +63,6 @@ const createParamString = (arrayOfSongIDs) => {
   for (let i = 0; i < arrayOfSongIDs.length; i += 1) {
     arrayOfParams.push(`id = $${i + 1}`);
   }
-
   return arrayOfParams.join(' or ');
 };
 
@@ -74,7 +74,6 @@ const getManyDetails = async (arrayOfSongIDs) => {
     )})`;
     // this will return an array of objects. Should narrows them down into what is wanted
     let data = await client.query(query, [...arrayOfSongIDs]);
-    // console.log(data.rows);
     return data.rows;
   } catch (err) {
     console.error(err);
@@ -83,6 +82,7 @@ const getManyDetails = async (arrayOfSongIDs) => {
 };
 
 // getManyDetails([1, 2, 3]);
+// getManyDetails([32, 33, 34, 35, 36, 37]);
 
 // should be in artists
 const addSong = async (songDetails) => {
@@ -126,9 +126,11 @@ const addSong = async (songDetails) => {
 const removeSong = async (songID) => {
   try {
     let query = `DELETE FROM songs WHERE id = ${songID}`;
-    let data = client.query(query);
-    console.log('Deleted');
-    return data;
+    await client.query(query);
+    let deleteObject = {
+      message: 'Song Deleted',
+    };
+    return deleteObject;
   } catch (err) {
     console.error(err);
     return err;
@@ -136,25 +138,29 @@ const removeSong = async (songID) => {
 };
 
 // should be in update
-const updatePlaycount = (songID, additionalPlays) => {
-  let query = 'SELECT playcount FROM songs WHERE id = ($1)';
-  client
-    .query(query, [songID])
-    .then((data) => data.rows[0].playcount)
-    .then((data) => {
-      client
-        .query(
-          `UPDATE songs SET playcount = ${data +
-            additionalPlays} WHERE id = $1`,
-          [songID],
-        )
-        .then((data) => console.log(data))
-        .catch((err) => console.error(err));
-    })
-    .catch((err) => console.error(err));
+
+const updatePlaycount = async (songID, additionalPlays) => {
+  try {
+    let query = 'SELECT playcount FROM songs WHERE id = ($1)';
+    let getPlaycount = await client.query(query, [songID]);
+    let playcount = getPlaycount.rows[0].playcount;
+    let updatedPlaycount = playcount + additionalPlays;
+    let update = await client.query(
+      `UPDATE songs SET playcount = ${updatedPlaycount} WHERE id = $1`,
+      [songID],
+    );
+    let responseObject = {
+      message: 'Playcount Updated',
+      playcount: updatedPlaycount,
+    };
+    return responseObject;
+  } catch (err) {
+    console.error(err);
+    return err;
+  }
 };
 
-// updatePlaycount(1, 1);
+// updatePlaycount(1, 1111);
 
 // should be in update
 // got to figure out what this actually looks like with dave
@@ -178,13 +184,16 @@ const copyToTable = (fromFile) => {
 };
 
 // create DB if not created yet
-// if (process.env.INITIALIZEDB) {
-initializeDB()
-  .then()
-  .catch((err) => console.error('error creating database tables, ', err.stack));
-// }
+if (process.env.INITIALIZEDB) {
+  initializeDB()
+    .then()
+    .catch((err) =>
+      console.error('error creating database tables, ', err.stack),
+    );
+}
 
 module.exports = {
+  client,
   getSongDetails,
   getManyDetails,
   addSong,
