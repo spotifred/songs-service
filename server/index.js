@@ -33,6 +33,16 @@ router.get('/songs/deets/:songID', async (ctx, next) => {
   }
 });
 
+router.post('/songs/getManyDeets', async (ctx, next) => {
+  try {
+    ctx.response.body = await db.getManyDetails(ctx.request.body);
+    await next();
+  } catch (err) {
+    console.error(err);
+    ctx.response.body = err;
+  }
+});
+
 // here the body of the post is the song object
 router.post('/songs/addSong', async (ctx, next) => {
   try {
@@ -46,7 +56,7 @@ router.post('/songs/addSong', async (ctx, next) => {
 
 router.post('/songs/removeSong/:songID', async (ctx, next) => {
   try {
-    let removal = await db.removeSong(ctx.params.songID);
+    await db.removeSong(ctx.params.songID);
     ctx.response.body = 'Deleted';
     await next();
   } catch (err) {
