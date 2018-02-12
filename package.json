@@ -44,12 +44,16 @@
   "homepage": "https://github.com/spotifred/spotifred#readme",
   "devDependencies": {
     "babel-plugin-istanbul": "^4.1.5",
+    "babel-register": "^6.26.0",
     "nodemon": "^1.14.12",
     "nyc": "^11.4.1",
     "why-is-node-running": "^1.2.3"
   },
   "nyc": {
+    "include": ["database/**/*.js", "server/**/*.js"],
+    "exclude": ["**/test/**/*", "packages/**/*"],
     "sourceMap": false,
-    "instrument": false
+    "instrument": false,
+    "all": false
   }
 }
