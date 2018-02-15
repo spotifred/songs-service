@@ -4,7 +4,7 @@ const siege = require('siege');
 
 siege()
   .wait(1000)
-  .on(3000)
+  .on(process.env.PORT)
   .get('/songs/immediateDeets/1111115')
   .for(1000)
   .times.get('/songs/deets/1111115')
@@ -12,16 +12,16 @@ siege()
   .times.get('/songs/immediateDeets/1111115')
   .for(2)
   .seconds.post('/songs/addSong', {
-    title: 'asdfhj',
+    title: 'test',
     length: 120,
-    artist: 'asdf',
-    genre: 'asdf',
-    file: 'asdf',
+    artist: 'test',
+    genre: 'test',
+    file: 'test',
     playcount: 0,
-    album: 'asdf',
+    album: 'test',
     track: 12,
-    art: 'asdf',
-    bpm: 20,
+    art: 'test',
+    bpm: 144,
   })
-  .for(10)
+  .for(10000)
   .times.attack();
