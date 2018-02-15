@@ -145,5 +145,3 @@ describe('Server', () => {
     }).timeout(1000);
   });
 });
-console.log(process.exit);
-after(() => process.exit(0));
