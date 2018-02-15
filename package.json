@@ -46,8 +46,7 @@
     "babel-plugin-istanbul": "^4.1.5",
     "babel-register": "^6.26.0",
     "nodemon": "^1.14.12",
-    "nyc": "^11.4.1",
-    "why-is-node-running": "^1.2.3"
+    "nyc": "^11.4.1"
   },
   "nyc": {
     "include": ["database/**/*.js", "server/**/*.js"],
