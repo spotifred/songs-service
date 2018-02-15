@@ -1,18 +1,18 @@
+require('dotenv').config();
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const create = require('../data/creation.js');
 const path = require('path');
 const db = require('../database/index');
 const concat = require('concat-files');
-const fs = require('fs');
 
 const destinationFile = path.join(__dirname, '/mergedFiles.csv');
 
 console.time('Total Time of Generation and Insertion');
 // number is number of rows per file
-async function fakeSongsGenerator(number) {
+async function fakeSongsGenerator(number, files) {
   const arrayOfCsvFiles = [];
   console.time('fakeSongsGenerator');
-  const numberOfFiles = 100;
+  const numberOfFiles = files;
   for (let i = 0; i < numberOfFiles; i += 1) {
     let fileName = `data${i}`;
     const csvWriter = createCsvWriter({
@@ -56,17 +56,22 @@ async function fakeSongsGenerator(number) {
 }
 
 // fakeSongsGenerator takes in number of rows per file
-try {
-  fakeSongsGenerator(100000)
-    .then((filePath) => {
-      setTimeout(async () => {
-        await db.copyToTable(filePath);
-        console.timeEnd('Total Time of Generation and Insertion');
-      }, 10000);
-    })
-    .then(() => {
-      console.log('Data generated');
-    });
-} catch (err) {
-  console.error('ERROR:', err);
-}
+
+const generator = (rowsPerFile, numberOfFiles = 1) => {
+  try {
+    fakeSongsGenerator(rowsPerFile, numberOfFiles)
+      .then((filePath) => {
+        setTimeout(async () => {
+          await db.copyToTable(filePath);
+          console.timeEnd('Total Time of Generation and Insertion');
+        }, 10000);
+      })
+      .then(() => {
+        console.log('Data generated');
+      });
+  } catch (err) {
+    console.error('ERROR:', err);
+  }
+};
+
+module.exports = { generator };
