@@ -3,11 +3,76 @@ require('newrelic');
 const { Client } = require('pg');
 const path = require('path');
 const fs = require('fs');
+const { Pool } = require('pg');
 
 const client = new Client({
   connectionString: process.env.DATABASE_URL,
 });
 
+// will have to configure, home not ok later
+
+const pool = new Pool({
+  database: 'capstone',
+  user: process.env.DB_USER,
+  password: process.env.DB_USER_PASSWORD || '',
+  max: 20,
+  min: 4,
+  idleTimeoutMillis: 1000, // close idle clients after 1 second
+  connectionTimeoutMillis: 1000, // return an error after 1 second if connection could not be established
+});
+
+const getPoolSongDetails = async (songID) => {
+  // console.log(songID);
+  try {
+    let data = await pool.query('SELECT * FROM songs where id = $1', [songID]);
+    // console.log(data.rows[0]);
+    // console.log(data);
+    return data.rows[0];
+  } catch (err) {
+    (err) => console.error(err);
+    return err;
+  }
+};
+
+const addPoolSong = async (songDetails) => {
+  try {
+    let query =
+      'INSERT INTO songs (title, length, artist, genre, file, playcount, album, track, art, bpm) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *';
+    let data = await pool.query(query, [
+      songDetails.title,
+      songDetails.length,
+      songDetails.artist,
+      songDetails.genre,
+      songDetails.file,
+      songDetails.playcount,
+      songDetails.album,
+      songDetails.track,
+      songDetails.art,
+      songDetails.bpm,
+    ]);
+    // console.log(data);
+    return data.rows[0];
+  } catch (err) {
+    console.error(err);
+    return err;
+  }
+};
+
+const removePoolSong = async (songID) => {
+  try {
+    let query = `DELETE FROM songs WHERE id = ${songID}`;
+    await pool.query(query);
+    let deleteObject = {
+      message: 'Song Deleted',
+    };
+    return deleteObject;
+  } catch (err) {
+    console.error(err);
+    return err;
+  }
+};
+
+// ################# REGULAR
 client
   .connect()
   .then(() => console.log('Connected to database'))
@@ -200,4 +265,7 @@ module.exports = {
   removeSong,
   copyToTable,
   updatePlaycount,
+  getPoolSongDetails,
+  addPoolSong,
+  removePoolSong,
 };
