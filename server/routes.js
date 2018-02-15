@@ -1,5 +1,7 @@
 const router = require('koa-router')();
 const db = require('../database/index.js');
+const sqsHelpers = require('./AWS.js');
+const dataMaker = require('../data/generation');
 
 // for immediate relief
 // TODO: refactor to cb for speed
@@ -15,7 +17,7 @@ router.get('/songs/immediateDeets/:songID', async (ctx, next) => {
 
 router.get('/songs/deets/:songID', async (ctx, next) => {
   try {
-    ctx.response.body = await db.getSongDetails(ctx.params.songID);
+    ctx.response.body = await db.getPoolSongDetails(ctx.params.songID);
     await next();
   } catch (err) {
     console.error(err);
@@ -36,7 +38,7 @@ router.post('/songs/getManyDeets', async (ctx, next) => {
 // here the body of the post is the song object
 router.post('/songs/addSong', async (ctx, next) => {
   try {
-    ctx.response.body = await db.addSong(ctx.request.body);
+    ctx.response.body = await db.addPoolSong(ctx.request.body);
     await next();
   } catch (err) {
     console.error(err);
@@ -46,7 +48,7 @@ router.post('/songs/addSong', async (ctx, next) => {
 
 router.post('/songs/removeSong/:songID', async (ctx, next) => {
   try {
-    await db.removeSong(ctx.params.songID);
+    await db.removePoolSong(ctx.params.songID);
     ctx.response.body = 'Deleted';
     await next();
   } catch (err) {
@@ -56,51 +58,12 @@ router.post('/songs/removeSong/:songID', async (ctx, next) => {
 });
 
 // *************************
-const Consumer = require('sqs-consumer');
-const AWS = require('aws-sdk');
 
-AWS.config.update({
-  region: 'us-west-1',
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-});
-
-const app = Consumer.create({
-  queueUrl: process.env.MY_SQS,
-  handleMessage: (message, done) => {
-    // ...
-    console.log(message);
-    done();
-  },
-});
-
-let sqs = new AWS.SQS();
-
-app.on('error', (err) => {
-  console.log(err.message);
-});
-
-const sendMessage = (message) => {
-  const params = {
-    MessageBody: JSON.stringify(message),
-    QueueUrl: process.env.MY_SQS, // Not needed? try later
-    DelaySeconds: 0,
-  };
-  sqs.sendMessage(params, (err, data) => {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log('sent: ' + data);
-    }
-  });
-};
-
-app.start();
-
-router.post('/sendMessage', async (ctx, next) => {
+// sends to my test SQS
+router.post('/testMessage', async (ctx, next) => {
   try {
-    console.log('Made it to /sendMessage');
-    ctx.body = await sendMessage(ctx.request.body.message);
+    console.log('Made it to /testMessage');
+    ctx.body = await sqsHelpers.testMessage(ctx.request.body);
     await next();
   } catch (err) {
     console.error(err);
@@ -108,4 +71,57 @@ router.post('/sendMessage', async (ctx, next) => {
   }
 });
 
-module.exports = { router, app };
+// send to true sqs
+router.post('/sendSongObject', async (ctx, next) => {
+  try {
+    console.log('Made it to /sendSongObject');
+    ctx.body = await sqsHelpers.sendSongObject(ctx.request.body);
+    await next();
+  } catch (err) {
+    console.error(err);
+    ctx.response.body = err;
+  }
+});
+
+// to get all queues at the address
+router.post('/listQueues', async (ctx, next) => {
+  console.log('/listQueues');
+  await sqsHelpers.spotifred.listQueues((err, data) => {
+    if (err) {
+      console.error(err);
+      ctx.body = err;
+    } else {
+      console.log('List:', data);
+      ctx.body = data;
+    }
+  });
+  await next();
+});
+
+// for health checks from load balancers
+router.post('/health', async (ctx, next) => {
+  ctx.body.status = 200;
+  next();
+});
+
+// rows is rows per file, files is number of files.
+// generates rows * files data total
+router.post('/generateNewData/:rows/:files', async (ctx, next) => {
+  try {
+    await dataMaker.generator(ctx.params.rows, ctx.params.files || 1);
+    ctx.status = 200;
+    await next();
+  } catch (err) {
+    console.error(err);
+    ctx.body = err;
+  }
+});
+
+// for loader.io
+router.get('/loaderio-fe16dcac99ccb6e9e95cd32257838c03', async (ctx, next) => {
+  ctx.body = 'loaderio-fe16dcac99ccb6e9e95cd32257838c03';
+  ctx.status = 200;
+  next();
+});
+
+module.exports = { router };
